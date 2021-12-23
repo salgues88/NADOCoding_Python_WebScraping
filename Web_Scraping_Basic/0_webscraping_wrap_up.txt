@@ -1,0 +1,153 @@
+웹 스크래핑 전체 마무리 복습 (1_html.html ~ 18_headless_chrome_useragent.py)
+
+
+
+HTML    : 뼈대      /       CSS : 예쁘게        /       javascript : 살아있게
+
+
+
+HTML 기본 구조
+<html>
+    <head>
+        <title>홈페이지</title>
+    </head>
+    <body>
+        <h1>어서오세요</h1>
+    </body>
+</html> 
+
+
+
+HTML                                        XPATH : html 코드 내 어떤 Element의 경로 (크롬에선 웹사이트 개발자 모드에서 우클릭 복사해서 사용)
+                                            [Element의 경로]                                    [Element간의 관계]]
+<button id="Search_btn"                     특징 (id, class, text)                              <부모>
+        type="submit"                       //*[@id="search_btn"]          (단축경로)               <자식/>
+        title="검색"                        /html/body/div[2]/~~~/button    (전체경로)               <자식/>
+        class="btn_submit>                                                                          <자식/>
+                                                                                                </부모>
+
+
+
+
+
+정규식 - 규칙을 가진 문자열을 표시하는 식
+ex. 주민등록번호       900101-111111 (O), abcdef-111111 (X)
+ex2. IP 주소          192.168.0.1 (O), 1000.2000.3000.4 (X)
+ex3. 차량번호         21가 1234
+ex4. 이메일          abcdef@gmail.com
+
+
+정규식 사용방법 정리
+0) import re                     : 정규식 함수 라이브러리 불러오기
+
+1) p = re.compile("원하는 형태")  : 정규식을 사용하고자 하는 원하는 형태 입력
+   정규식 원하는 형태 예시
+    . (ca.e) : 하나의 문자를 의미        ex. cafe, case, care (O) | caffe, calle (X)
+    ^ (^de)  : 문자열의 시작             ex. destiny, destination, desert (O) | fade, shade (X)
+    $ (se$)  : 문자열의 끝               ex. case, base (O) | face, seven (X)
+    그 외 기타 형태 (나도코딩 수업에서는 이정도면 충분함)
+
+2-1) m   = p.match("비교할 문자열")   : 주어진 문자열이 처음부터 일치하는지 확인 (매칭되면 매칭값 출력, 안되면 출력 X)
+
+2-2) m   = p.search("비교할 문자열")  : 주어진 문자열 중 일치하는게 있는지 확인 (.group(), .string, .start(), .end(), .span() 등과 함께 사용)
+
+2-3) lst = p.findall("비교할 문자열") : 일치하는 모든 것을 '리스트'형태로 반환
+
+
+
+
+
+User-Agent
+- 어떤 페이지를 보여줄까?       (접속한 기기(PC, 스마트폰) / 해당 국가 지역 등 User-Agent 정보를 통해 맞춤형 페이지를 보여줌)
+- 그런데 접속한게 사람이 맞아?  (페이지를 접속한게 봇이라고 생각하면 접속 권한을 주지 않을 수도 있음 -> User-Agent 정보를 입력해서 사람이 맞다고 인식시킬 수 있음)
+- import Requests를 통해 사용 가능
+
+
+
+
+
+Requests                                                              
+- 웹페이지(html) 읽어오는 외부 함수                                     
+- 주어진 url을 통해 받아온 html에 원하는 정보가 있을 떄 사용하기 좋음      
+- 접속문제 확인 : res.raise_for_status()                               
+- 매우 빠름                                                            
+- 동적 웹페이지 사용 X                                                  
+                                                                      
+
+
+Selenium
+- 웹페이지(html) 자동화 프레임워크
+- 로그인, 어떤 결과에 대한 필터링 등 어떤 동작을 해야하는 경우 (ex. 콘서트 표 자동 예매 시스템)
+- 크롬 버전에 맞는 chromedriver.exe 파일이 반드시 필요
+- 느림
+- 동적 웹페이지 사용 O
+
+- .find_element(s)_by_id / class_name / link_text / xpath : ~~로 찾기
+- .click() : 마우스 클릭,  .send_keys() : 글자 입력
+
+- 기다림 함수 (14_selenium_flight.py 참조)
+
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC        # 너무 길어서 EC로 재명명
+
+    try:
+        [성공했을 떄 동작 수행]
+        elem = WebDriverWait(browser, 10).until (EC.presence_of_element_located((By.XPATH, "//*[@id='comtent']")))
+
+        [실패했을 떄 동작 수행]
+    finally:
+        browser.quit()
+
+- 스크롤 내리기 (16_selenium_movie_scroll.py 참조)
+
+
+
+Beautiful Soup
+- Requests and/or Selenium으로 가져온 웹페이지 데이터 중 
+  원하는 데이터를 추출하는 라이브러리 (웹 스크래핑)
+
+- .find                     : 조건에 맞는 첫번째 element 출력
+- .find_all                 : 조건에 맞는 모든 element를 리스트로 찾아서 출력
+- .find_next_sibling(s)     : 다음 형제 찾기
+- .find_previous_sibling(s) : 이전 형제 찾기
+
+- soup["href"]              : 속성 (보통 a hef = 링크주소 형태로 많이 사용)
+- soup.get_text             : 텍스트 
+
+
+
+
+
+이미지 다운로드
+with open("파일명", "wb") as f:
+    f.write(res.content)
+
+
+
+
+
+CSV 다운로드
+import csv
+f = open(filename, "w", encoding="utf-8-sig", newline="")
+
+
+
+
+
+Headless Chrome
+- 브라우저를 띄우지 않고 동작
+- 때로는 User-Agent 정의 필요 (∵ 봇으로 접근 차단 방지 등)
+- 크롬 59 버전부터 사용 가능 (최선 버전 크롬은 모두 사용 가능)
+
+
+
+
+
+웹 스크래핑을 막 쓰면 안돼요!!!
+- 무분별한 웹 크롤링 / 웹 스크래핑은 대상 서버에 부하를 줌
+  -> 계정 / IP 차단 위험성
+- 데이터 사용 주의
+  -> 이미지, 텍스트 등 데이터 무단 활용 시 저작권 침해 요소, 법적 제제 위험성
+- robots.txt (몇몇 웹사이트에서는 사이트주소/robots.txt 로 접속 시 웹스크래핑 허용/불가능 부분을 띄어줌)
+  -> 법적 효력 X, 대상 사이트의 권고 -> 가급적이면 사이트 권고안을 따를 것
